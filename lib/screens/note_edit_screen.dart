@@ -46,38 +46,26 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
 
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Введите заголовок заметки'),
-          duration: Duration(seconds: 2),
-        ),
+        const SnackBar(content: Text('Введите заголовок'), duration: Duration(seconds: 2)),
       );
       return;
     }
 
     if (widget.isNewNote) {
-      // Создаем новую заметку
       final newNote = Note.create(title: title, text: text);
       noteService.addNote(newNote);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Заметка создана: $title'),
-          duration: const Duration(seconds: 2),
-        ),
+        SnackBar(content: Text('Заметка создана: $title'), duration: const Duration(seconds: 2)),
       );
     } else if (widget.noteIndex != null) {
-      // Обновляем существующую
       final existingNote = noteService.notes[widget.noteIndex!];
       existingNote.update(title: title, text: text);
       noteService.updateNote(widget.noteIndex!, existingNote);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Заметка обновлена: $title'),
-          duration: const Duration(seconds: 2),
-        ),
+        SnackBar(content: Text('Заметка обновлена: $title'), duration: const Duration(seconds: 2)),
       );
     }
 
-    // Возвращаемся назад
     Navigator.pop(context);
   }
 
@@ -88,7 +76,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Удалить заметку?'),
-        content: const Text('Вы уверены, что хотите удалить эту заметку?'),
+        content: const Text('Вы уверены?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -99,19 +87,13 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
               if (widget.noteIndex != null) {
                 noteService.deleteNote(widget.noteIndex!);
               }
-              Navigator.pop(context); // Закрываем диалог
+              Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Заметка удалена'),
-                  duration: Duration(seconds: 2),
-                ),
+                const SnackBar(content: Text('Заметка удалена'), duration: Duration(seconds: 2)),
               );
-              Navigator.pop(context); // Возвращаемся на главный экран
+              Navigator.pop(context);
             },
-            child: const Text(
-              'Удалить',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -142,12 +124,8 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
                 hintText: 'Заголовок заметки...',
                 hintStyle: TextStyle(color: Colors.grey[600]),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
               ),
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const Divider(height: 20, thickness: 1),
             Expanded(

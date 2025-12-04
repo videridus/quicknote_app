@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import '../services/settings_service.dart';
 
 class QuoteScreen extends StatefulWidget {
   const QuoteScreen({super.key});
@@ -8,55 +10,62 @@ class QuoteScreen extends StatefulWidget {
 }
 
 class _QuoteScreenState extends State<QuoteScreen> {
-  String _quote = '"Код — это поэзия, написанная на языке, понятном машинам."';
-  String _author = 'Анонимный разработчик';
-  String _lastUpdate = '15:30';
+  final ApiService _apiService = ApiService();
+  final SettingsService _settingsService = SettingsService();
+  
+  String _quote = '';
+  String _author = '';
+  String _lastUpdate = '';
   bool _isLoading = false;
 
-  // Имитация загрузки цитаты из API
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedQuote();
+  }
+
+  Future<void> _loadSavedQuote() async {
+    final savedQuote = await _settingsService.getLastQuote();
+    setState(() {
+      _quote = savedQuote['text']!;
+      _author = savedQuote['author']!;
+      
+      final savedTime = DateTime.parse(savedQuote['time']!);
+      _lastUpdate = '${savedTime.hour}:${savedTime.minute.toString().padLeft(2, '0')}';
+    });
+  }
+
   Future<void> _fetchNewQuote() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    // Имитация задержки сети
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final newQuote = await _apiService.fetchRandomQuote();
+      
+      await _settingsService.saveLastQuote(newQuote['text']!, newQuote['author']!);
+      
+      setState(() {
+        _quote = newQuote['text']!;
+        _author = newQuote['author']!;
+        _lastUpdate = '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+      });
 
-    // Временные цитаты (в будущем заменим на реальный API)
-    final quotes = [
-      {
-        'quote': '"Лучший способ предсказать будущее — создать его."',
-        'author': 'Алан Кей'
-      },
-      {
-        'quote': '"Программирование — это разбиение чего-то большого и невозможного на что-то маленькое и вполне реальное."',
-        'author': 'Джозуа Блох'
-      },
-      {
-        'quote': '"Прежде всего, нужно учиться коду не ради кода, а ради того, чтобы стать творцом и решать проблемы."',
-        'author': 'Джефф Этвуд'
-      },
-      {
-        'quote': '"Хороший программист смотрит в обе стороны, переходя дорогу с односторонним движением."',
-        'author': 'Даг Линдер'
-      },
-    ];
-
-    final randomIndex = DateTime.now().second % quotes.length;
-    
-    setState(() {
-      _quote = quotes[randomIndex]['quote']!;
-      _author = quotes[randomIndex]['author']!;
-      _lastUpdate = '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
-      _isLoading = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Новая цитата загружена!'),
-        duration: Duration(seconds: 1),
-      ),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Новая цитата загружена!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -82,7 +91,6 @@ class _QuoteScreenState extends State<QuoteScreen> {
               ),
               const SizedBox(height: 32),
               
-              // Контейнер с цитатой
               Container(
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
@@ -97,33 +105,25 @@ class _QuoteScreenState extends State<QuoteScreen> {
                     else
                       Text(
                         _quote,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontStyle: FontStyle.italic,
-                        ),
+                        style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
                         textAlign: TextAlign.center,
                       ),
                     const SizedBox(height: 16),
                     if (!_isLoading)
                       Text(
                         '— $_author',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
               
-              // Кнопка обновления
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _fetchNewQuote,
                 icon: _isLoading
                     ? const SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 16, height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.refresh),
@@ -131,21 +131,14 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
               ),
               const SizedBox(height: 16),
               
-              // Время обновления
               Text(
-                'Последнее обновление: $_lastUpdate',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
+                'Обновлено: $_lastUpdate',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
               ),
             ],
           ),

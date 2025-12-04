@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Note {
   final String id;
   String title;
@@ -17,7 +19,7 @@ class Note {
   factory Note.create({required String title, required String text}) {
     final now = DateTime.now();
     return Note(
-      id: 'note_${now.millisecondsSinceEpoch}',
+      id: 'note_${now.millisecondsSinceEpoch}_${now.microsecondsSinceEpoch}',
       title: title,
       text: text,
       createdAt: now,
@@ -46,5 +48,31 @@ class Note {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
+  }
+
+  // Преобразование в JSON строку
+  String toJson() => jsonEncode(toMap());
+
+  // Создание Note из JSON
+  factory Note.fromJson(String json) {
+    final map = jsonDecode(json);
+    return Note(
+      id: map['id'],
+      title: map['title'],
+      text: map['text'],
+      createdAt: DateTime.parse(map['createdAt']),
+      updatedAt: DateTime.parse(map['updatedAt']),
+    );
+  }
+
+  // Создание Note из Map
+  factory Note.fromMap(Map<String, dynamic> map) {
+    return Note(
+      id: map['id'],
+      title: map['title'],
+      text: map['text'],
+      createdAt: DateTime.parse(map['createdAt']),
+      updatedAt: DateTime.parse(map['updatedAt']),
+    );
   }
 }
