@@ -14,11 +14,11 @@ class SettingsService {
 
   Future<Map<String, String>> getLastQuote() async {
     final prefs = await SharedPreferences.getInstance();
-    final text = prefs.getString(_quoteTextKey) ?? 
+    final text = prefs.getString(_quoteTextKey) ??
         '"Код — это поэзия, написанная на языке, понятном машинам."';
     final author = prefs.getString(_quoteAuthorKey) ?? 'Анонимный разработчик';
-    final time = prefs.getString(_lastQuoteTimeKey) ?? 
-        DateTime.now().toIso8601String();
+    final time =
+        prefs.getString(_lastQuoteTimeKey) ?? DateTime.now().toIso8601String();
 
     return {
       'text': text,

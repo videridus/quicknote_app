@@ -1,6 +1,6 @@
 {
-    "name": "quicknote_app",
-    "short_name": "quicknote_app",
+    "name": "quicknote_fixed",
+    "short_name": "quicknote_fixed",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

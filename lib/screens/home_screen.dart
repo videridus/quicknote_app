@@ -1,9 +1,10 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import '../services/note_service.dart';
 import 'note_edit_screen.dart';
 import 'quote_screen.dart';
+import 'weather_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,10 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final noteService = Provider.of<NoteService>(context, listen: false);
-      noteService.loadNotes();
-    });
+    // Заметки теперь загружаются автоматически в main.dart
   }
 
   void _addNote(BuildContext context) {
@@ -38,10 +36,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openWeatherScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const WeatherScreen()),
+    );
+  }
+
   void _openNoteDetail(BuildContext context, int index) {
     final noteService = Provider.of<NoteService>(context, listen: false);
     final note = noteService.notes[index];
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -57,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _deleteNote(BuildContext context, int index) {
     final noteService = Provider.of<NoteService>(context, listen: false);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -89,12 +94,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _deleteAllNotes(BuildContext context) {
     final noteService = Provider.of<NoteService>(context, listen: false);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Очистить все заметки?'),
-        content: const Text('Все заметки будут удалены из локального хранилища.'),
+        content:
+            const Text('Все заметки будут удалены из локального хранилища.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -124,10 +130,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _exportNotes(BuildContext context) async {
     final noteService = Provider.of<NoteService>(context, listen: false);
-    
+
     try {
       final exportText = await noteService.exportNotes();
-      
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -165,6 +171,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _refreshNotes(BuildContext context) {
+    final noteService = Provider.of<NoteService>(context, listen: false);
+    noteService.loadNotes();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Заметки обновлены'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final noteService = Provider.of<NoteService>(context);
@@ -187,6 +204,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _refreshNotes(context),
+            tooltip: 'Обновить заметки',
+          ),
           Consumer<NoteService>(
             builder: (context, noteService, _) {
               return PopupMenuButton(
@@ -216,6 +238,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.lightbulb_outline),
             onPressed: () => _openQuoteScreen(context),
             tooltip: 'Цитата дня',
+          ),
+          IconButton(
+            icon: const Icon(Icons.cloud),
+            onPressed: () => _openWeatherScreen(context),
+            tooltip: 'Погода',
           ),
           if (noteService.isLoading)
             const Padding(
@@ -252,10 +279,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     side: const BorderSide(color: Colors.orange),
                   ),
                 ),
+                OutlinedButton.icon(
+                  onPressed: () => _openWeatherScreen(context),
+                  icon: const Icon(Icons.cloud),
+                  label: const Text('Погода'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue,
+                    side: const BorderSide(color: Colors.blue),
+                  ),
+                ),
               ],
             ),
           ),
-          
           if (noteService.isLoading && notes.isEmpty)
             const Expanded(
               child: Center(
@@ -286,40 +321,49 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           else
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(8.0),
-                itemCount: notes.length,
-                itemBuilder: (context, index) {
-                  final note = notes[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                    child: ListTile(
-                      leading: const Icon(Icons.note, color: Colors.indigo),
-                      title: Text(note.title),
-                      subtitle: Text(
-                        note.text.length > 50 
-                            ? '${note.text.substring(0, 50)}...' 
-                            : note.text,
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            note.formattedDate,
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, size: 18),
-                            onPressed: () => _deleteNote(context, index),
-                            color: Colors.red,
-                            padding: const EdgeInsets.only(left: 8.0),
-                          ),
-                        ],
-                      ),
-                      onTap: () => _openNoteDetail(context, index),
-                    ),
-                  );
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  final noteService =
+                      Provider.of<NoteService>(context, listen: false);
+                  await noteService.loadNotes();
                 },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8.0),
+                  itemCount: notes.length,
+                  itemBuilder: (context, index) {
+                    final note = notes[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 4.0, horizontal: 8.0),
+                      child: ListTile(
+                        leading: const Icon(Icons.note, color: Colors.indigo),
+                        title: Text(note.title),
+                        subtitle: Text(
+                          note.text.length > 50
+                              ? '${note.text.substring(0, 50)}...'
+                              : note.text,
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              note.formattedDate,
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[600]),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 18),
+                              onPressed: () => _deleteNote(context, index),
+                              color: Colors.red,
+                              padding: const EdgeInsets.only(left: 8.0),
+                            ),
+                          ],
+                        ),
+                        onTap: () => _openNoteDetail(context, index),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
         ],

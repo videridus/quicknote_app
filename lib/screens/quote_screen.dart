@@ -12,7 +12,7 @@ class QuoteScreen extends StatefulWidget {
 class _QuoteScreenState extends State<QuoteScreen> {
   final ApiService _apiService = ApiService();
   final SettingsService _settingsService = SettingsService();
-  
+
   String _quote = '';
   String _author = '';
   String _lastUpdate = '';
@@ -29,9 +29,10 @@ class _QuoteScreenState extends State<QuoteScreen> {
     setState(() {
       _quote = savedQuote['text']!;
       _author = savedQuote['author']!;
-      
+
       final savedTime = DateTime.parse(savedQuote['time']!);
-      _lastUpdate = '${savedTime.hour}:${savedTime.minute.toString().padLeft(2, '0')}';
+      _lastUpdate =
+          '${savedTime.hour}:${savedTime.minute.toString().padLeft(2, '0')}';
     });
   }
 
@@ -40,13 +41,15 @@ class _QuoteScreenState extends State<QuoteScreen> {
 
     try {
       final newQuote = await _apiService.fetchRandomQuote();
-      
-      await _settingsService.saveLastQuote(newQuote['text']!, newQuote['author']!);
-      
+
+      await _settingsService.saveLastQuote(
+          newQuote['text']!, newQuote['author']!);
+
       setState(() {
         _quote = newQuote['text']!;
         _author = newQuote['author']!;
-        _lastUpdate = '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+        _lastUpdate =
+            '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -90,7 +93,6 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 color: _isLoading ? Colors.grey : Colors.orange,
               ),
               const SizedBox(height: 32),
-              
               Container(
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
@@ -105,7 +107,8 @@ class _QuoteScreenState extends State<QuoteScreen> {
                     else
                       Text(
                         _quote,
-                        style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+                        style: const TextStyle(
+                            fontSize: 18, fontStyle: FontStyle.italic),
                         textAlign: TextAlign.center,
                       ),
                     const SizedBox(height: 16),
@@ -118,12 +121,12 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _fetchNewQuote,
                 icon: _isLoading
                     ? const SizedBox(
-                        width: 16, height: 16,
+                        width: 16,
+                        height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.refresh),
@@ -131,11 +134,11 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
               ),
               const SizedBox(height: 16),
-              
               Text(
                 'Обновлено: $_lastUpdate',
                 style: TextStyle(fontSize: 12, color: Colors.grey[500]),

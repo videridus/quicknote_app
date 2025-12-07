@@ -33,9 +33,7 @@ class NoteService extends ChangeNotifier {
   Future<void> addNote(Note note) async {
     try {
       await _repository.insertNote(note);
-      _notes.insert(0, note);
-      _storageInfo = 'Заметок: ${_notes.length}';
-      notifyListeners();
+      await loadNotes(); // Перезагружаем заметки после добавления
       print('✅ NoteService: Заметка добавлена');
     } catch (e) {
       print('❌ NoteService: Ошибка добавления: $e');
@@ -46,8 +44,7 @@ class NoteService extends ChangeNotifier {
   Future<void> updateNote(int index, Note updatedNote) async {
     try {
       await _repository.updateNote(updatedNote);
-      _notes[index] = updatedNote;
-      notifyListeners();
+      await loadNotes(); // Перезагружаем заметки после обновления
       print('✅ NoteService: Заметка обновлена');
     } catch (e) {
       print('❌ NoteService: Ошибка обновления: $e');
@@ -59,9 +56,7 @@ class NoteService extends ChangeNotifier {
     final note = _notes[index];
     try {
       await _repository.deleteNote(note.id);
-      _notes.removeAt(index);
-      _storageInfo = 'Заметок: ${_notes.length}';
-      notifyListeners();
+      await loadNotes(); // Перезагружаем заметки после удаления
       print('✅ NoteService: Заметка удалена');
     } catch (e) {
       print('❌ NoteService: Ошибка удаления: $e');
@@ -72,9 +67,7 @@ class NoteService extends ChangeNotifier {
   Future<void> deleteAllNotes() async {
     try {
       await _repository.deleteAllNotes();
-      _notes.clear();
-      _storageInfo = 'Хранилище очищено';
-      notifyListeners();
+      await loadNotes(); // Перезагружаем заметки после очистки
       print('✅ NoteService: Все заметки удалены');
     } catch (e) {
       print('❌ NoteService: Ошибка очистки: $e');
@@ -84,11 +77,11 @@ class NoteService extends ChangeNotifier {
 
   Future<String> exportNotes() async {
     if (_notes.isEmpty) return 'Нет заметок';
-    
+
     final buffer = StringBuffer();
     buffer.writeln('=== ЭКСПОРТ ЗАМЕТОК ===');
     buffer.writeln('Всего: ${_notes.length} заметок\n');
-    
+
     for (var i = 0; i < _notes.length; i++) {
       final note = _notes[i];
       buffer.writeln('${i + 1}. ${note.title}');
@@ -96,7 +89,7 @@ class NoteService extends ChangeNotifier {
       buffer.writeln('   Дата: ${note.formattedDate}');
       buffer.writeln('   ID: ${note.id}\n');
     }
-    
+
     return buffer.toString();
   }
 }

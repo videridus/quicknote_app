@@ -46,7 +46,8 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
 
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Введите заголовок'), duration: Duration(seconds: 2)),
+        const SnackBar(
+            content: Text('Введите заголовок'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -55,14 +56,18 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       final newNote = Note.create(title: title, text: text);
       noteService.addNote(newNote);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Заметка создана: $title'), duration: const Duration(seconds: 2)),
+        SnackBar(
+            content: Text('Заметка создана: $title'),
+            duration: const Duration(seconds: 2)),
       );
     } else if (widget.noteIndex != null) {
       final existingNote = noteService.notes[widget.noteIndex!];
       existingNote.update(title: title, text: text);
       noteService.updateNote(widget.noteIndex!, existingNote);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Заметка обновлена: $title'), duration: const Duration(seconds: 2)),
+        SnackBar(
+            content: Text('Заметка обновлена: $title'),
+            duration: const Duration(seconds: 2)),
       );
     }
 
@@ -71,7 +76,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
 
   void _deleteNote(BuildContext context) {
     final noteService = Provider.of<NoteService>(context, listen: false);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -89,7 +94,9 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
               }
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Заметка удалена'), duration: Duration(seconds: 2)),
+                const SnackBar(
+                    content: Text('Заметка удалена'),
+                    duration: Duration(seconds: 2)),
               );
               Navigator.pop(context);
             },

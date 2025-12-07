@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'services/note_service.dart';
+import 'viewmodels/weather_viewmodel.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,10 +13,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => NoteService(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => NoteService()..loadNotes(),
+        ),
+        ChangeNotifierProvider(create: (context) => WeatherViewModel()),
+      ],
       child: MaterialApp(
-        title: 'QuickNote',
+        title: 'QuickNote с Погодой',
         theme: ThemeData(
           primaryColor: Colors.indigo,
           colorScheme: ColorScheme.fromSwatch(

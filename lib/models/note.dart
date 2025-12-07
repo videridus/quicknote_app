@@ -15,7 +15,6 @@ class Note {
     required this.updatedAt,
   });
 
-  // Создание новой заметки
   factory Note.create({required String title, required String text}) {
     final now = DateTime.now();
     return Note(
@@ -27,19 +26,16 @@ class Note {
     );
   }
 
-  // Обновление заметки
   void update({String? title, String? text}) {
     if (title != null) this.title = title;
     if (text != null) this.text = text;
     updatedAt = DateTime.now();
   }
 
-  // Форматированная дата для отображения
   String get formattedDate {
     return '${createdAt.day}.${createdAt.month}.${createdAt.year}';
   }
 
-  // Преобразование в Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -50,22 +46,24 @@ class Note {
     };
   }
 
-  // Преобразование в JSON строку
   String toJson() => jsonEncode(toMap());
 
-  // Создание Note из JSON
   factory Note.fromJson(String json) {
-    final map = jsonDecode(json);
-    return Note(
-      id: map['id'],
-      title: map['title'],
-      text: map['text'],
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
-    );
+    try {
+      final map = jsonDecode(json);
+      return Note(
+        id: map['id'] ?? '',
+        title: map['title'] ?? '',
+        text: map['text'] ?? '',
+        createdAt: DateTime.parse(map['createdAt']),
+        updatedAt: DateTime.parse(map['updatedAt']),
+      );
+    } catch (e) {
+      print('❌ Ошибка парсинга Note из JSON: $e');
+      rethrow;
+    }
   }
 
-  // Создание Note из Map
   factory Note.fromMap(Map<String, dynamic> map) {
     return Note(
       id: map['id'],
